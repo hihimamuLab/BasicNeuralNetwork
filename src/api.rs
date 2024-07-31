@@ -41,11 +41,3 @@ pub fn reshape(mut vector: Vec<f32>, height: usize, width: usize) -> DatasetVect
     }
     reshaped_vector
 }
-
-pub fn max(neuron_layer: NeuronLayer) -> Vec<u8> {
-    let max: f64 = neuron_layer.iter().map(|v| *v).reduce(f64::max).unwrap();
-    let max_index: usize = neuron_layer.iter().position(|v| v == &max).unwrap();
-    let mut lbl: Vec<u8> = vec![0; 10];
-    lbl[max_index] = 1;
-    lbl
-}
