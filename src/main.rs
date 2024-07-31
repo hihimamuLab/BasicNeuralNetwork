@@ -19,6 +19,11 @@ struct Weight {
     height: u16,
 }
 
+struct Store {
+    weights: Vec<WeightVector>,
+    biases: Vec<f64>,
+}
+
 #[derive(Debug, Default)]
 #[allow(dead_code)]
 struct Dataset {
@@ -74,6 +79,21 @@ impl Weight {
             .map(|_| (0..self.width).map(|_| rand::random::<f64>()).collect())
             .collect()
     }
+    fn build(layer_len_list: Vec<u16>) -> Vec<WeightVector> {
+        let mut weight_list: Vec<WeightVector> = vec![];
+        for i in 0..layer_len_list.len() {
+            if i < 1 {
+                weight_list.push(Self::new().size(layer_len_list[i], PIXEL as u16).generate());
+            } else {
+                weight_list.push(
+                    Self::new()
+                        .size(layer_len_list[i], layer_len_list[i - 1])
+                        .generate(),
+                );
+            }
+        }
+        weight_list
+    }
 }
 
 impl Dataset {
@@ -88,8 +108,8 @@ impl Dataset {
             .base_path("./data")
             .finalize()
             .normalize();
-        let trn_lbl: Vec<f32> = mnist.trn_lbl.into_iter().map(|v| v as f32).collect();
-        let tst_lbl: Vec<f32> = mnist.tst_lbl.into_iter().map(|v| v as f32).collect();
+        let trn_lbl: Vec<f32> = mnist.trn_lbl.iter().map(|v| *v as f32).collect();
+        let tst_lbl: Vec<f32> = mnist.tst_lbl.iter().map(|v| *v as f32).collect();
         Self {
             trn_img: reshape(mnist.trn_img, TRAIN_IMAGE, PIXEL),
             trn_lbl: reshape(trn_lbl, TRAIN_IMAGE, LABEL_LEN),
@@ -103,16 +123,9 @@ fn main() {
     let dataset: Dataset = Dataset::new().load_mnist();
     let layer_len_list: Vec<u16> = vec![100, 50, 10];
     let trn_img: NeuronLayer = dataset.trn_img[0].iter().map(|v| *v as f64).collect();
-    let bias: f64 = 0.0;
-    let weight_list: Vec<WeightVector> = vec![
-        Weight::new()
-            .size(layer_len_list[0], PIXEL.try_into().unwrap())
-            .generate(),
-        Weight::new()
-            .size(layer_len_list[1], layer_len_list[0])
-            .generate(),
-        Weight::new()
-            .size(layer_len_list[2], layer_len_list[1])
-            .generate(),
-    ];
+    let weight_list: Vec<WeightVector> = Weight::build(layer_len_list);
+    let store: Store = Store {
+        weights: weight_list,
+        biases: Vec::new(),
+    };
 }
