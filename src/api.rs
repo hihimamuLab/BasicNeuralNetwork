@@ -13,9 +13,9 @@ pub mod activate_functions {
     }
 
     pub fn softmax(neuron_layer: NeuronLayer) -> NeuronLayer {
-        let maximum_value: f64 = neuron_layer.clone()
-            .into_iter()
-            .map(|v| v)
+        let maximum_value: f64 = neuron_layer
+            .iter()
+            .map(|v| *v)
             .reduce(f64::max)
             .unwrap();
         let sum_e_pow_element: f64 = neuron_layer
@@ -31,7 +31,7 @@ pub mod activate_functions {
     }
 }
 
-use crate::DatasetVector;
+use crate::{DatasetVector, NeuronLayer};
 pub fn reshape(mut vector: Vec<f32>, height: usize, width: usize) -> DatasetVector {
     let mut _cut_vector: Vec<f32> = vec![];
     let mut reshaped_vector: DatasetVector = vec![];
@@ -40,4 +40,12 @@ pub fn reshape(mut vector: Vec<f32>, height: usize, width: usize) -> DatasetVect
         reshaped_vector.push(vector.clone());
     }
     reshaped_vector
+}
+
+pub fn max(neuron_layer: NeuronLayer) -> Vec<u8> {
+    let max: f64 = neuron_layer.iter().map(|v| *v).reduce(f64::max).unwrap();
+    let max_index: usize = neuron_layer.iter().position(|v| v == &max).unwrap();
+    let mut lbl: Vec<u8> = vec![0; 10];
+    lbl[max_index] = 1;
+    lbl
 }

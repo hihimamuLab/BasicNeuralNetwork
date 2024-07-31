@@ -115,18 +115,4 @@ fn main() {
             .size(layer_len_list[2], layer_len_list[1])
             .generate(),
     ];
-    let mut trn_img_layer = trn_img.clone();
-    for i in 0..3 {
-        trn_img_layer = NetworkLayer::forward_prop(
-            trn_img_layer,
-            layer_len_list[i].into(),
-            weight_list[i].clone(),
-            bias,
-        );
-        if i < 2 {
-            trn_img_layer = NetworkLayer::activate(trn_img_layer, ActivateType::Sigmoid);
-        }
-    }
-    trn_img_layer = NetworkLayer::activate(trn_img_layer, ActivateType::Softmax);
-    println!("{:#?}", trn_img_layer);
 }
