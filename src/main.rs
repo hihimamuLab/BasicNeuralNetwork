@@ -21,7 +21,7 @@ struct Weight {
 
 struct Store {
     weights: Vec<WeightVector>,
-    biases: Vec<f64>,
+    biases: Vec<Vec<f64>>,
 }
 
 #[derive(Debug, Default)]
@@ -63,6 +63,18 @@ impl NetworkLayer {
                 .unwrap();
         let bias = Array::from_vec(vec![bias]);
         (neuron_layer.dot(&weights) + bias).into_raw_vec()
+    }
+    fn accuracy(output: Vec<NeuronLayer>, lbl: DatasetVector) -> f64 {
+        let mut correct_count: i32 = 0;
+        for i in 0..output.len() {
+            let idx_max_output: usize = output[i].iter().position(|v| *v == output[i].clone().into_iter().reduce(f64::max).unwrap()).unwrap();
+            let idx_max_lbl: usize = lbl[i].iter().position(|v| *v == lbl[i].clone().into_iter().reduce(f32::max).unwrap()).unwrap();
+            if idx_max_output == idx_max_lbl {
+                correct_count += 1;
+            }
+        }
+        let accuracy: f64 = (correct_count / 100).into();
+        accuracy
     }
 }
 
