@@ -49,16 +49,20 @@ impl NetworkLayer {
         }
     }
     fn forward_prop(
-        neuron_layer: NeuronLayer,
+        neuron_layer: Vec<NeuronLayer>,
         next_layer_len: usize,
+        batch_size: usize,
         weights: WeightVector,
         bias: f64,
     ) -> NeuronLayer {
         let weights =
             Array::from_shape_vec((neuron_layer.len(), next_layer_len), weights.concat()).unwrap();
-        let neuron_layer = Array::from_vec(neuron_layer);
+        // let neuron_layer = Array::from_vec(neuron_layer);
+        let neuron_layer =
+            Array::from_shape_vec((batch_size, neuron_layer[0].len()), neuron_layer.concat())
+                .unwrap();
         let bias = Array::from_vec(vec![bias]);
-        (neuron_layer.dot(&weights) + bias).to_vec()
+        (neuron_layer.dot(&weights) + bias).into_raw_vec()
     }
 }
 
@@ -122,7 +126,11 @@ impl Dataset {
 fn main() {
     let dataset: Dataset = Dataset::new().load_mnist();
     let layer_len_list: Vec<u16> = vec![100, 50, 10];
-    let trn_img: NeuronLayer = dataset.trn_img[0].iter().map(|v| *v as f64).collect();
+    let trn_img: Vec<NeuronLayer> = dataset
+        .trn_img
+        .iter()
+        .map(|list| list.iter().map(|v| *v as f64).collect())
+        .collect();
     let weight_list: Vec<WeightVector> = Weight::build(layer_len_list);
     let store: Store = Store {
         weights: weight_list,
