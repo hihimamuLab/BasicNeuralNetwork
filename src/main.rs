@@ -53,15 +53,14 @@ impl NetworkLayer {
         next_layer_len: usize,
         batch_size: usize,
         weights: WeightVector,
-        bias: f64,
+        bias: Vec<f64>,
     ) -> NeuronLayer {
         let weights =
             Array::from_shape_vec((neuron_layer.len(), next_layer_len), weights.concat()).unwrap();
-        // let neuron_layer = Array::from_vec(neuron_layer);
         let neuron_layer =
             Array::from_shape_vec((batch_size, neuron_layer[0].len()), neuron_layer.concat())
                 .unwrap();
-        let bias = Array::from_vec(vec![bias]);
+        let bias = Array::from_vec(bias);
         (neuron_layer.dot(&weights) + bias).into_raw_vec()
     }
     fn accuracy(output: Vec<NeuronLayer>, lbl: DatasetVector) -> f64 {
