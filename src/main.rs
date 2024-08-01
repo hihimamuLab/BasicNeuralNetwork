@@ -10,7 +10,7 @@ type WeightVector = Vec<Vec<f64>>;
 
 const TRAIN_IMAGE: usize = 60000;
 const TEST_IMAGE: usize = 10000;
-const PIXEL: usize = 784;
+const PIXEL: u16 = 784;
 const LABEL_LEN: usize = 10;
 
 #[derive(Default)]
@@ -94,11 +94,11 @@ impl Weight {
             .map(|_| (0..self.width).map(|_| rand::random::<f64>()).collect())
             .collect()
     }
-    fn build(layer_len_list: Vec<u16>) -> Vec<WeightVector> {
+    fn build(layer_len_list: Vec<u16>, input_len: u16) -> Vec<WeightVector> {
         let mut weight_list: Vec<WeightVector> = vec![];
         for i in 0..layer_len_list.len() {
             if i < 1 {
-                weight_list.push(Self::new().size(layer_len_list[i], PIXEL as u16).generate());
+                weight_list.push(Self::new().size(layer_len_list[i], input_len).generate());
             } else {
                 weight_list.push(
                     Self::new()
@@ -126,9 +126,9 @@ impl Dataset {
         let trn_lbl: Vec<f32> = mnist.trn_lbl.iter().map(|v| *v as f32).collect();
         let tst_lbl: Vec<f32> = mnist.tst_lbl.iter().map(|v| *v as f32).collect();
         Self {
-            trn_img: reshape(mnist.trn_img, TRAIN_IMAGE, PIXEL),
+            trn_img: reshape(mnist.trn_img, TRAIN_IMAGE, PIXEL as usize),
             trn_lbl: reshape(trn_lbl, TRAIN_IMAGE, LABEL_LEN),
-            tst_img: reshape(mnist.tst_img, TEST_IMAGE, PIXEL),
+            tst_img: reshape(mnist.tst_img, TEST_IMAGE, PIXEL as usize),
             tst_lbl: reshape(tst_lbl, TEST_IMAGE, LABEL_LEN),
         }
     }
@@ -142,7 +142,7 @@ fn main() {
         .iter()
         .map(|list| list.iter().map(|v| *v as f64).collect())
         .collect();
-    let weight_list: Vec<WeightVector> = Weight::build(layer_len_list);
+    let weight_list: Vec<WeightVector> = Weight::build(layer_len_list, PIXEL);
     let store: Store = Store {
         weights: weight_list,
         biases: Vec::new(),
