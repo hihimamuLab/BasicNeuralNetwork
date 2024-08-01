@@ -1,6 +1,6 @@
 use mnist::{MnistBuilder, NormalizedMnist};
 use ndarray::prelude::*;
-use rand;
+use rand::{self, Rng};
 mod api;
 use api::{activate_functions, reshape};
 
@@ -95,7 +95,7 @@ impl Weight {
     }
     fn generate(&self) -> WeightVector {
         (0..self.height)
-            .map(|_| (0..self.width).map(|_| rand::random::<f64>()).collect())
+            .map(|_| (0..self.width).map(|_| rand::thread_rng().gen_range(0.0..=0.1)).collect())
             .collect()
     }
     fn build(layer_len_list: Vec<u16>, input_len: u16) -> Vec<WeightVector> {
