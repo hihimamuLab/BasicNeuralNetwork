@@ -19,6 +19,7 @@ struct Weight {
     height: u16,
 }
 
+#[derive(Default)]
 struct Store {
     weights: Vec<WeightVector>,
     biases: Vec<Vec<f64>>,
@@ -134,17 +135,18 @@ impl Dataset {
     }
 }
 
-fn main() {
-    let dataset: Dataset = Dataset::new().load_mnist();
-    let layer_len_list: Vec<u16> = vec![100, 50, 10];
-    let trn_img: Vec<NeuronLayer> = dataset
-        .trn_img
-        .iter()
-        .map(|list| list.iter().map(|v| *v as f64).collect())
-        .collect();
-    let weight_list: Vec<WeightVector> = Weight::build(layer_len_list, PIXEL);
-    let store: Store = Store {
-        weights: weight_list,
-        biases: Vec::new(),
-    };
+impl Store {
+    fn new() -> Self {
+        Self {
+            ..Default::default()
+        }
+    }
+    fn weight(&mut self, weight: Vec<WeightVector>) {
+        self.weights = weight;
+    }
+    fn bias(&mut self, bias: Vec<Vec<f64>>) {
+        self.biases = bias;
+    }
 }
+
+fn main() {}
