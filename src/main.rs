@@ -1,12 +1,11 @@
 use mnist::{MnistBuilder, NormalizedMnist};
 use ndarray::prelude::*;
-use rand::{self, Rng};
+use rand::Rng;
 mod api;
 use api::{activate_functions, reshape};
 
 type NeuronLayer = Vec<f64>;
-type DatasetVector = Vec<Vec<f32>>;
-type WeightVector = Vec<Vec<f64>>;
+type DataVector = Vec<Vec<f64>>;
 
 const TRAIN_IMAGE: usize = 60000;
 const TEST_IMAGE: usize = 10000;
@@ -24,17 +23,17 @@ struct Bias;
 
 #[derive(Default)]
 struct Store {
-    weights: Vec<WeightVector>,
-    biases: Vec<Vec<f64>>,
+    weights: Vec<DataVector>,
+    biases: DataVector,
 }
 
 #[derive(Debug, Default)]
 #[allow(dead_code)]
 struct Dataset {
-    trn_img: DatasetVector,
-    trn_lbl: DatasetVector,
-    tst_img: DatasetVector,
-    tst_lbl: DatasetVector,
+    trn_img: DataVector,
+    trn_lbl: DataVector,
+    tst_img: DataVector,
+    tst_lbl: DataVector,
 }
 
 #[derive(Debug)]
@@ -56,7 +55,7 @@ impl NetworkLayer {
         neuron_layer: Vec<NeuronLayer>,
         next_layer_len: usize,
         batch_size: usize,
-        weights: WeightVector,
+        weights: DataVector,
         bias: Vec<f64>,
     ) -> NeuronLayer {
         let weights =
@@ -67,11 +66,11 @@ impl NetworkLayer {
         let bias = Array::from_vec(bias);
         (neuron_layer.dot(&weights) + bias).into_raw_vec()
     }
-    fn accuracy(output: Vec<NeuronLayer>, lbl: DatasetVector) -> f64 {
+    fn accuracy(output: Vec<NeuronLayer>, lbl: DataVector) -> f64 {
         let mut correct_count: i32 = 0;
         for i in 0..output.len() {
             let idx_max_output: usize = output[i].iter().position(|v| *v == output[i].clone().into_iter().reduce(f64::max).unwrap()).unwrap();
-            let idx_max_lbl: usize = lbl[i].iter().position(|v| *v == lbl[i].clone().into_iter().reduce(f32::max).unwrap()).unwrap();
+            let idx_max_lbl: usize = lbl[i].iter().position(|v| *v == lbl[i].clone().into_iter().reduce(f64::max).unwrap()).unwrap();
             if idx_max_output == idx_max_lbl {
                 correct_count += 1;
             }
@@ -93,13 +92,13 @@ impl Weight {
             height: h,
         }
     }
-    fn generate(&self) -> WeightVector {
+    fn generate(&self) -> DataVector {
         (0..self.height)
             .map(|_| (0..self.width).map(|_| rand::thread_rng().gen_range(0.0..=0.1)).collect())
             .collect()
     }
-    fn build(layer_len_list: Vec<u16>, input_len: u16) -> Vec<WeightVector> {
-        let mut weight_list: Vec<WeightVector> = vec![];
+    fn build(layer_len_list: Vec<u16>, input_len: u16) -> Vec<DataVector> {
+        let mut weight_list: Vec<DataVector> = vec![];
         for i in 0..layer_len_list.len() {
             if i < 1 {
                 weight_list.push(Self::new().size(layer_len_list[i], input_len).generate());
@@ -116,7 +115,7 @@ impl Weight {
 }
 
 impl Bias {
-    fn build(network: Vec<u16>) -> Vec<Vec<f64>> {
+    fn build(network: Vec<u16>) -> DataVector {
         network.into_iter().map(|v| {
             vec![0.0; v.into()]
         }).collect()
@@ -135,12 +134,14 @@ impl Dataset {
             .base_path("./data")
             .finalize()
             .normalize();
-        let trn_lbl: Vec<f32> = mnist.trn_lbl.iter().map(|v| *v as f32).collect();
-        let tst_lbl: Vec<f32> = mnist.tst_lbl.iter().map(|v| *v as f32).collect();
+        let trn_img: Vec<f64> = mnist.trn_img.iter().map(|v| *v as f64).collect();
+        let trn_lbl: Vec<f64> = mnist.trn_lbl.iter().map(|v| *v as f64).collect();
+        let tst_img: Vec<f64> = mnist.tst_img.iter().map(|v| *v as f64).collect();
+        let tst_lbl: Vec<f64> = mnist.tst_lbl.iter().map(|v| *v as f64).collect();
         Self {
-            trn_img: reshape(mnist.trn_img, TRAIN_IMAGE, PIXEL as usize),
+            trn_img: reshape(trn_img, TRAIN_IMAGE, PIXEL as usize),
             trn_lbl: reshape(trn_lbl, TRAIN_IMAGE, LABEL_LEN),
-            tst_img: reshape(mnist.tst_img, TEST_IMAGE, PIXEL as usize),
+            tst_img: reshape(tst_img, TEST_IMAGE, PIXEL as usize),
             tst_lbl: reshape(tst_lbl, TEST_IMAGE, LABEL_LEN),
         }
     }
@@ -152,10 +153,10 @@ impl Store {
             ..Default::default()
         }
     }
-    fn weight(&mut self, weight: Vec<WeightVector>) {
+    fn weight(&mut self, weight: Vec<DataVector>) {
         self.weights = weight;
     }
-    fn bias(&mut self, bias: Vec<Vec<f64>>) {
+    fn bias(&mut self, bias: DataVector) {
         self.biases = bias;
     }
 }

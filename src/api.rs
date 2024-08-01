@@ -26,26 +26,26 @@ pub mod activate_functions {
 }
 
 pub mod loss_function {
-    use crate::{DatasetVector, NeuronLayer, LABEL_LEN};
+    use crate::{DataVector, NeuronLayer, LABEL_LEN};
     use std::f64::consts::E as Napier;
 
-    pub fn cross_entropy_error(neuron_layer: Vec<NeuronLayer>, lbl: DatasetVector) -> f64 {
-        let sum_loss: f64 = ((0..neuron_layer.len())
+    pub fn cross_entropy_error(neuron_layer: Vec<NeuronLayer>, lbl: DataVector) -> f64 {
+        let sum_loss: f64 = (0..neuron_layer.len())
             .map(|i| {
                 (0..LABEL_LEN)
                     .map(|j| neuron_layer[i][j] * (lbl[i][j] as f64).log(Napier))
                     .sum::<f64>()
             })
-            .sum::<f64>());
+            .sum::<f64>();
 
         -(sum_loss) / neuron_layer.len() as f64
     }
 }
 
-use crate::DatasetVector;
-pub fn reshape(mut vector: Vec<f32>, height: usize, width: usize) -> DatasetVector {
-    let mut _cut_vector: Vec<f32> = vec![];
-    let mut reshaped_vector: DatasetVector = vec![];
+use crate::DataVector;
+pub fn reshape(mut vector: Vec<f64>, height: usize, width: usize) -> DataVector {
+    let mut _cut_vector: Vec<f64> = vec![];
+    let mut reshaped_vector: DataVector = vec![];
     for _ in 0..height {
         _cut_vector = vector.split_off(width);
         reshaped_vector.push(vector.clone());
