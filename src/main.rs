@@ -20,6 +20,9 @@ struct Weight {
 }
 
 #[derive(Default)]
+struct Bias;
+
+#[derive(Default)]
 struct Store {
     weights: Vec<WeightVector>,
     biases: Vec<Vec<f64>>,
@@ -111,6 +114,8 @@ impl Weight {
         weight_list
     }
 }
+
+impl Bias {}
 
 impl Dataset {
     fn new() -> Self {
