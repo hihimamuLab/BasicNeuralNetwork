@@ -115,7 +115,13 @@ impl Weight {
     }
 }
 
-impl Bias {}
+impl Bias {
+    fn build(network: Vec<u16>) -> Vec<Vec<f64>> {
+        network.into_iter().map(|v| {
+            vec![0.0; v.into()]
+        }).collect()
+    }
+}
 
 impl Dataset {
     fn new() -> Self {
