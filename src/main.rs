@@ -37,14 +37,14 @@ struct Dataset {
 }
 
 #[derive(Debug)]
-struct NetworkLayer;
+struct Network;
 
 enum ActivateType {
     Sigmoid,
     Softmax,
 }
 
-impl NetworkLayer {
+impl Network {
     fn activate(neuron_layer: NeuronLayer, activate_type: ActivateType) -> NeuronLayer {
         match activate_type {
             ActivateType::Sigmoid => activate_functions::sigmoid(neuron_layer),
@@ -184,6 +184,6 @@ fn main() {
     let bias: DataVector = Bias::build(network[1..].to_vec());
     let trn_img: Vec<NeuronLayer> = dataset.trn_img[0..4].to_vec();
     let trn_lbl: Vec<NeuronLayer> = dataset.trn_lbl[0..4].to_vec();
-    let output: DataVector = NetworkLayer::forward_prop(trn_img, weight, bias);
+    let output: DataVector = Network::forward_prop(trn_img, weight, bias);
     println!("{}", api::loss_function::cross_entropy_error(output.clone(), trn_lbl.clone()));
 }
