@@ -30,15 +30,12 @@ pub mod loss_function {
     use std::f64::consts::E as Napier;
 
     pub fn cross_entropy_error(neuron_layer: Vec<NeuronLayer>, lbl: DataVector) -> f64 {
-        let sum_loss: f64 = (0..neuron_layer.len())
-            .map(|i| {
-                (0..LABEL_LEN)
-                    .map(|j| neuron_layer[i][j] * (lbl[i][j] as f64).log(Napier))
-                    .sum::<f64>()
-            })
-            .sum::<f64>();
-
-        -(sum_loss) / neuron_layer.len() as f64
+        let loss: f64 = (0..neuron_layer.len()).map(|i| {
+            (0..neuron_layer[0].len()).map(|j| {
+                lbl[i][j] * neuron_layer[i][j].log(Napier)
+            }).sum::<f64>()
+        }).sum::<f64>();
+        -(loss / neuron_layer.len() as f64) 
     }
 }
 

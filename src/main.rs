@@ -182,8 +182,8 @@ fn main() {
     let network: Vec<u16> = vec![784, 100, 50, 10];
     let weight: Vec<DataVector> = Weight::build(network[1..].to_vec(), network[0]);
     let bias: DataVector = Bias::build(network[1..].to_vec());
-    let trn_img: Vec<NeuronLayer> = dataset.trn_img[0..100].to_vec();
-    let trn_lbl: Vec<NeuronLayer> = dataset.trn_lbl[0..100].to_vec();
+    let trn_img: Vec<NeuronLayer> = dataset.trn_img[0..4].to_vec();
+    let trn_lbl: Vec<NeuronLayer> = dataset.trn_lbl[0..4].to_vec();
     let output: DataVector = NetworkLayer::forward_prop(trn_img, weight, bias);
-    println!("{:#?}", output);
+    println!("{}", api::loss_function::cross_entropy_error(output.clone(), trn_lbl.clone()));
 }
