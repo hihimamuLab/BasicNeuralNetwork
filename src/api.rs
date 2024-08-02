@@ -43,12 +43,7 @@ pub mod loss_function {
 }
 
 use crate::DataVector;
-pub fn reshape(mut vector: Vec<f64>, height: usize, width: usize) -> DataVector {
-    let mut _cut_vector: Vec<f64> = vec![];
-    let mut reshaped_vector: DataVector = vec![];
-    for _ in 0..height {
-        _cut_vector = vector.split_off(width);
-        reshaped_vector.push(vector.clone());
-    }
-    reshaped_vector
+pub fn reshape(vector: Vec<f64>, width: usize) -> DataVector {
+    let slice: &[f64] = vector.as_slice();
+    slice.chunks(width).map(|v| v.to_vec()).collect()
 }

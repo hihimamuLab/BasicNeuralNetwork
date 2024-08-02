@@ -9,7 +9,7 @@ type DataVector = Vec<Vec<f64>>;
 
 const TRAIN_IMAGE: usize = 60000;
 const TEST_IMAGE: usize = 10000;
-const PIXEL: u16 = 784;
+const PIXEL: usize = 784;
 const LABEL_LEN: usize = 10;
 
 #[derive(Default)]
@@ -139,10 +139,10 @@ impl Dataset {
         let tst_img: Vec<f64> = mnist.tst_img.iter().map(|v| *v as f64).collect();
         let tst_lbl: Vec<f64> = mnist.tst_lbl.iter().map(|v| *v as f64).collect();
         Self {
-            trn_img: reshape(trn_img, TRAIN_IMAGE, PIXEL as usize),
-            trn_lbl: reshape(trn_lbl, TRAIN_IMAGE, LABEL_LEN),
-            tst_img: reshape(tst_img, TEST_IMAGE, PIXEL as usize),
-            tst_lbl: reshape(tst_lbl, TEST_IMAGE, LABEL_LEN),
+            trn_img: reshape(trn_img, PIXEL),
+            trn_lbl: reshape(trn_lbl, LABEL_LEN),
+            tst_img: reshape(tst_img, PIXEL),
+            tst_lbl: reshape(tst_lbl, LABEL_LEN),
         }
     }
 }
@@ -161,4 +161,6 @@ impl Store {
     }
 }
 
-fn main() {}
+fn main() {
+    
+}
