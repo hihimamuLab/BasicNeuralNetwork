@@ -37,6 +37,14 @@ pub mod loss_function {
         }).sum::<f64>();
         -(loss / neuron_layer.len() as f64) 
     }
+    pub fn mean_squared_error(neuron_layer: Vec<NeuronLayer>, lbl: DataVector) -> f64 {
+        let loss: f64 = (0..neuron_layer.len()).map(|i| {
+            (0..neuron_layer[0].len()).map(|j| {
+                (neuron_layer[i][j] - lbl[i][j]).powi(2)
+            }).sum::<f64>()
+        }).sum::<f64>();
+        loss / (2.0_f64 * neuron_layer.len() as f64)
+    }
 }
 
 use crate::DataVector;
