@@ -1,5 +1,5 @@
 use mnist::{MnistBuilder, NormalizedMnist};
-use ndarray::prelude::*;
+use ndarray::{prelude::*, Data};
 use rand::Rng;
 mod api;
 use api::{activate_functions, reshape};
@@ -51,26 +51,40 @@ impl NetworkLayer {
             ActivateType::Softmax => activate_functions::softmax(neuron_layer),
         }
     }
-    fn forward_prop(
-        neuron_layer: Vec<NeuronLayer>,
-        next_layer_len: usize,
-        batch_size: usize,
-        weights: DataVector,
-        bias: Vec<f64>,
-    ) -> NeuronLayer {
-        let weights =
-            Array::from_shape_vec((neuron_layer.len(), next_layer_len), weights.concat()).unwrap();
-        let neuron_layer =
-            Array::from_shape_vec((batch_size, neuron_layer[0].len()), neuron_layer.concat())
-                .unwrap();
-        let bias = Array::from_vec(bias);
-        (neuron_layer.dot(&weights) + bias).into_raw_vec()
+    fn forward_prop(input: Vec<NeuronLayer>, weight: Vec<DataVector>, bias: DataVector) -> DataVector {
+        let mut output: ArrayBase<ndarray::OwnedRepr<f64>, Dim<[usize; 2]>> =
+            Array::from_shape_vec((input.len(), input[0].len()), input.concat()).unwrap();
+        let mut softmax_output: DataVector = Vec::new();
+        for i in 0..weight.len() {
+            let w: ArrayBase<ndarray::OwnedRepr<f64>, Dim<[usize; 2]>> =
+                Array::from_shape_vec((weight[i].len(), weight[i][0].len()), weight[i].concat())
+                    .unwrap();
+            let b: ArrayBase<ndarray::OwnedRepr<f64>, Dim<[usize; 1]>> = Array::from_vec(bias[i].clone());
+            output = output.dot(&w) + b;
+            if i < weight.len() - 1 {
+                let output_vec: Vec<f64> = Array::into_raw_vec(output.clone());
+                let reshaped_output_vec: DataVector = api::reshape(output_vec, weight[i][0].len());
+                let sigmoid: DataVector = reshaped_output_vec.into_iter().map(|vec| Self::activate(vec, ActivateType::Sigmoid)).collect();
+                output = Array::from_shape_vec((input.len(), weight[i][0].len()), sigmoid.concat()).unwrap();
+            } else {
+                let output_vec: Vec<f64> = Array::into_raw_vec(output.clone());
+                let reshaped_output_vec: DataVector = api::reshape(output_vec, weight[i][0].len());
+                softmax_output = reshaped_output_vec.into_iter().map(|vec| Self::activate(vec, ActivateType::Softmax)).collect();
+            }
+        }
+        softmax_output
     }
     fn accuracy(output: Vec<NeuronLayer>, lbl: DataVector) -> f64 {
         let mut correct_count: i32 = 0;
         for i in 0..output.len() {
-            let idx_max_output: usize = output[i].iter().position(|v| *v == output[i].clone().into_iter().reduce(f64::max).unwrap()).unwrap();
-            let idx_max_lbl: usize = lbl[i].iter().position(|v| *v == lbl[i].clone().into_iter().reduce(f64::max).unwrap()).unwrap();
+            let idx_max_output: usize = output[i]
+                .iter()
+                .position(|v| *v == output[i].clone().into_iter().reduce(f64::max).unwrap())
+                .unwrap();
+            let idx_max_lbl: usize = lbl[i]
+                .iter()
+                .position(|v| *v == lbl[i].clone().into_iter().reduce(f64::max).unwrap())
+                .unwrap();
             if idx_max_output == idx_max_lbl {
                 correct_count += 1;
             }
@@ -94,7 +108,11 @@ impl Weight {
     }
     fn generate(&self) -> DataVector {
         (0..self.height)
-            .map(|_| (0..self.width).map(|_| rand::thread_rng().gen_range(0.0..=0.1)).collect())
+            .map(|_| {
+                (0..self.width)
+                    .map(|_| rand::thread_rng().gen_range(0.0..=0.1))
+                    .collect()
+            })
             .collect()
     }
     fn build(layer_len_list: Vec<u16>, input_len: u16) -> Vec<DataVector> {
@@ -116,9 +134,7 @@ impl Weight {
 
 impl Bias {
     fn build(network: Vec<u16>) -> DataVector {
-        network.into_iter().map(|v| {
-            vec![0.0; v.into()]
-        }).collect()
+        network.into_iter().map(|v| vec![0.0; v.into()]).collect()
     }
 }
 
@@ -162,5 +178,12 @@ impl Store {
 }
 
 fn main() {
-    
+    let dataset: Dataset = Dataset::new().load_mnist();
+    let network: Vec<u16> = vec![784, 100, 50, 10];
+    let weight: Vec<DataVector> = Weight::build(network[1..].to_vec(), network[0]);
+    let bias: DataVector = Bias::build(network[1..].to_vec());
+    let trn_img: Vec<NeuronLayer> = dataset.trn_img[0..100].to_vec();
+    let trn_lbl: Vec<NeuronLayer> = dataset.trn_lbl[0..100].to_vec();
+    let output: DataVector = NetworkLayer::forward_prop(trn_img, weight, bias);
+    println!("{:#?}", output);
 }
